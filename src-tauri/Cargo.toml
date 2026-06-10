@@ -1,0 +1,29 @@
+[package]
+name = "particle-chart-app"
+version = "0.1.0"
+edition = "2021"
+default-run = "particle-chart-app"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tokio-serial = "5.4"
+serialport = "4"
+tauri-plugin-mcp-bridge = "0.11"
+
+[patch.crates-io]
+serialport = { path = "./serialport-patch" }
+
+[lib]
+name = "particle_chart_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "simulated-device"
+path = "src/bin/simulated_device.rs"

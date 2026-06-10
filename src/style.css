@@ -1,0 +1,430 @@
+/* === Reset & Full Viewport === */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    min-width: 800px;
+    min-height: 500px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: #1b1b2f;
+    color: #e8e8f0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* === App Layout === */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* === Top Navigation Bar (48px) === */
+.top-nav {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 20px;
+    background: #16162a;
+    border-bottom: 1px solid #333355;
+    flex-shrink: 0;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4fc3f7;
+    box-shadow: 0 0 8px rgba(79, 195, 247, 0.4);
+}
+
+.brand-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e8e8f0;
+    letter-spacing: 0.5px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 2px;
+    margin-left: 40px;
+}
+
+.nav-tab {
+    padding: 8px 20px;
+    border: none;
+    background: transparent;
+    color: #8888aa;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+}
+
+.nav-tab:hover {
+    color: #e8e8f0;
+    background: rgba(79, 195, 247, 0.08);
+}
+
+.nav-tab.active {
+    color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.12);
+    border-bottom: 2px solid #4fc3f7;
+}
+
+.nav-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #8888aa;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef5350;
+    transition: background 0.3s ease;
+}
+
+.status-indicator.connected {
+    background: #66bb6a;
+    box-shadow: 0 0 6px rgba(102, 187, 106, 0.5);
+}
+
+/* === Body: Sidebar + Main === */
+.app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* === Sidebar Wrapper (collapsible) === */
+.sidebar-wrapper {
+    position: relative;
+    width: 260px;
+    flex-shrink: 0;
+    transition: width 0.2s ease;
+    background: #232340;
+    border-right: 1px solid #333355;
+    overflow: hidden;
+}
+
+.sidebar-wrapper.collapsed {
+    width: 0;
+    border-right: none;
+    overflow: visible;
+}
+
+.sidebar-wrapper.collapsed .sidebar {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar {
+    width: 260px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid #2a2a4a;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    top: 50%;
+    right: -13px;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid #4fc3f7;
+    background: #232340;
+    color: #4fc3f7;
+    font-size: 10px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    padding: 0;
+    box-shadow: 0 0 6px rgba(79, 195, 247, 0.3);
+}
+
+.sidebar-toggle:hover {
+    color: #fff;
+    border-color: #4fc3f7;
+    background: #4fc3f7;
+}
+
+.sidebar-section:last-child {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #8888aa;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+/* === Serial Config (compact sidebar) === */
+.config-field {
+    margin-bottom: 10px;
+}
+
+.config-field label {
+    display: block;
+    font-size: 11px;
+    color: #8888aa;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+}
+
+.config-field input,
+.config-field select {
+    width: 100%;
+    max-width: 100%;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #444466;
+    background: #1e1e3a;
+    color: #e8e8f0;
+    font-size: 16px; /* prevents iOS auto-zoom */
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.config-field input:focus,
+.config-field select:focus {
+    border-color: #4fc3f7;
+}
+
+.config-field input::placeholder {
+    color: #555577;
+}
+
+.config-field input:disabled,
+.config-field select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.port-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.port-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.port-row select {
+    width: 60px;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.btn-start, .btn-stop {
+    flex: 1;
+    padding: 8px 0;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.15s ease;
+}
+
+.btn-start {
+    background: #2e7d32;
+    color: #e8f5e9;
+}
+
+.btn-start:hover:not(:disabled) {
+    background: #388e3c;
+}
+
+.btn-stop {
+    background: #c62828;
+    color: #ffebee;
+}
+
+.btn-stop:hover:not(:disabled) {
+    background: #d32f2f;
+}
+
+.btn-start:disabled, .btn-stop:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.btn-refresh {
+    padding: 4px 12px;
+    border: 1px solid #444466;
+    border-radius: 4px;
+    background: transparent;
+    color: #8888aa;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-refresh:hover:not(:disabled) {
+    color: #4fc3f7;
+    border-color: #4fc3f7;
+}
+
+.btn-refresh:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* === Max Value Display (sidebar) === */
+.max-display {
+    text-align: center;
+    padding: 16px;
+}
+
+.max-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #8888aa;
+    margin-bottom: 6px;
+}
+
+.max-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #4fc3f7;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #8888aa;
+}
+
+.stats-value {
+    color: #e8e8f0;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+/* === Main Content === */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    overflow: hidden;
+}
+
+.charts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* === Channel Chart === */
+.channel-chart {
+    flex: 1;
+    min-height: 0;
+    background: #232340;
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-title {
+    font-size: 12px;
+    color: #8888aa;
+    margin: 0 0 4px 4px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.chart-container {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+/* === Settings View === */
+.settings-container {
+    padding: 40px;
+    max-width: 600px;
+}
+
+.settings-container h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #e8e8f0;
+    margin: 0 0 20px 0;
+}
+
+.settings-placeholder {
+    color: #8888aa;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* === Scrollbar (subtle) === */
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #333355;
+    border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #444466;
+}

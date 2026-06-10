@@ -1,0 +1,41 @@
+# Rust
+target/
+Cargo.lock
+
+# Trunk
+dist/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/node_modules/
+src-tauri/package.json
+src-tauri/package-lock.json
+
+# Docs
+docs/
+
+# Claude / AI tools
+.claude/
+.playwright-mcp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.cache/
+
+# Test/temp files (root only)
+/tauri-frontend-final.png
+/test_serial_reconnect.py
