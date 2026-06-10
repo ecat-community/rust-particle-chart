@@ -34,7 +34,8 @@ impl SerialConfig {
         if !Self::VALID_BAUD_RATES.contains(&self.baud_rate) {
             return Err(format!(
                 "invalid baud_rate: {}. Valid values: {:?}",
-                self.baud_rate, Self::VALID_BAUD_RATES
+                self.baud_rate,
+                Self::VALID_BAUD_RATES
             ));
         }
 
@@ -192,7 +193,11 @@ mod tests {
         for baud_rate in valid_rates {
             let mut config = create_test_config();
             config.baud_rate = baud_rate;
-            assert!(config.validate().is_ok(), "baud_rate {} should be valid", baud_rate);
+            assert!(
+                config.validate().is_ok(),
+                "baud_rate {} should be valid",
+                baud_rate
+            );
         }
     }
 
@@ -201,7 +206,11 @@ mod tests {
         for data_bits in 5..=8 {
             let mut config = create_test_config();
             config.data_bits = data_bits;
-            assert!(config.validate().is_ok(), "data_bits {} should be valid", data_bits);
+            assert!(
+                config.validate().is_ok(),
+                "data_bits {} should be valid",
+                data_bits
+            );
         }
     }
 

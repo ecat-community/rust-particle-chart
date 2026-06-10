@@ -29,7 +29,7 @@ struct RawdData {
 enum ParserState {
     Idle,
     InRawdHeader,
-    InRawdArray1([u16; 256]),
+    InRawdArray1(Box<[u16; 256]>),
 }
 
 struct Parser {
@@ -38,7 +38,9 @@ struct Parser {
 
 impl Parser {
     fn new() -> Self {
-        Parser { state: ParserState::Idle }
+        Parser {
+            state: ParserState::Idle,
+        }
     }
 
     fn feed_line(&mut self, line: &str) -> Option<RawdData> {
@@ -55,7 +57,7 @@ impl Parser {
                 match parse_hex_line(line) {
                     Ok(array1) => {
                         eprintln!("  [PARSER] Got array1, first 5: {:?}", &array1[0..5]);
-                        self.state = ParserState::InRawdArray1(array1);
+                        self.state = ParserState::InRawdArray1(Box::new(array1));
                     }
                     Err(_) => {
                         eprintln!("  [PARSER] Metadata line: '{}'", line);
@@ -63,26 +65,29 @@ impl Parser {
                 }
                 None
             }
-            ParserState::InRawdArray1(array1) => {
-                match parse_hex_line(line) {
-                    Ok(array2) => {
-                        let result = RawdData { array1: *array1, array2 };
-                        self.state = ParserState::Idle;
-                        Some(result)
-                    }
-                    Err(_) => {
-                        self.state = ParserState::Idle;
-                        None
-                    }
+            ParserState::InRawdArray1(array1) => match parse_hex_line(line) {
+                Ok(array2) => {
+                    let result = RawdData {
+                        array1: **array1,
+                        array2,
+                    };
+                    self.state = ParserState::Idle;
+                    Some(result)
                 }
-            }
+                Err(_) => {
+                    self.state = ParserState::Idle;
+                    None
+                }
+            },
         }
     }
 }
 
 #[tokio::main]
 async fn main() {
-    let port_path = std::env::args().nth(1).unwrap_or_else(|| "/tmp/ttyV0".to_string());
+    let port_path = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "/tmp/ttyV0".to_string());
     eprintln!("=== Serial Backend Test ===");
     eprintln!("Opening {} ...", port_path);
 
@@ -101,7 +106,10 @@ async fn main() {
 
     // Send start command
     eprintln!("Sending start command '27'...");
-    write_half.write_all(b"27\r\n").await.expect("Failed to write");
+    write_half
+        .write_all(b"27\r\n")
+        .await
+        .expect("Failed to write");
     write_half.flush().await.expect("Failed to flush");
 
     eprintln!("Waiting for data...");
@@ -137,7 +145,8 @@ async fn main() {
                 }
             }
         }
-    }).await;
+    })
+    .await;
 
     match timeout {
         Ok(_) => {
@@ -151,7 +160,10 @@ async fn main() {
             }
         }
         Err(_) => {
-            eprintln!("TIMEOUT after 10s. Lines: {}, RAWDs: {}", line_count, rawd_count);
+            eprintln!(
+                "TIMEOUT after 10s. Lines: {}, RAWDs: {}",
+                line_count, rawd_count
+            );
         }
     }
 }

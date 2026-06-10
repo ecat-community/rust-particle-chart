@@ -45,7 +45,9 @@ mod tests {
         let line = "0001 0002 0003";
         let result = parse_hex_line(line);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Expected 256 hex values, got 3"));
+        assert!(result
+            .unwrap_err()
+            .contains("Expected 256 hex values, got 3"));
     }
 
     #[test]

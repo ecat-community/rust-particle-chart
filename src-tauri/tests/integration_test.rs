@@ -84,7 +84,10 @@ async fn test_serial_data_flow() {
     let mut reader = BufReader::new(read_half);
 
     // Send start command
-    write_half.write_all(b"27\r\n").await.expect("Failed to send start");
+    write_half
+        .write_all(b"27\r\n")
+        .await
+        .expect("Failed to send start");
     write_half.flush().await.expect("Failed to flush");
 
     // Read and parse looking for #RAWD
@@ -106,10 +109,15 @@ async fn test_serial_data_flow() {
                 break;
             }
         }
-    }).await;
+    })
+    .await;
 
     assert!(timeout.is_ok(), "Test timed out");
-    assert!(rawd_count >= 3, "Expected at least 3 RAWD blocks, got {}", rawd_count);
+    assert!(
+        rawd_count >= 3,
+        "Expected at least 3 RAWD blocks, got {}",
+        rawd_count
+    );
 
     device_handle.abort();
 }

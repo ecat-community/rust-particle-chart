@@ -1,7 +1,7 @@
-use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, State};
 use crate::protocol::rawd::RawdData;
 use crate::serial::{config::SerialConfig, manager::SerialManager};
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, State};
 
 pub struct AppState {
     pub manager: Mutex<Option<SerialManager>>,
@@ -40,7 +40,10 @@ pub async fn start_capture(
     stop_bits: u8,
     parity: String,
 ) -> Result<(), String> {
-    eprintln!("[CMD] start_capture called: port={}, baud={}", port_name, baud_rate);
+    eprintln!(
+        "[CMD] start_capture called: port={}, baud={}",
+        port_name, baud_rate
+    );
 
     // Stop any existing manager
     {

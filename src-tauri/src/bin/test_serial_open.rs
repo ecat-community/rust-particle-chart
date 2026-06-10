@@ -1,4 +1,5 @@
-use serialport::SerialPort;
+#[allow(unused_imports)]
+use serialport::SerialPort as _;
 
 fn main() {
     let path = std::env::args().nth(1).unwrap_or("/tmp/ttyV0".to_string());

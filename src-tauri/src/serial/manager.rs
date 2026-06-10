@@ -1,9 +1,9 @@
+use super::config::SerialConfig;
+use crate::protocol::parser::ProtocolParser;
+use crate::protocol::rawd::RawdData;
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::sync::watch;
-use crate::protocol::parser::ProtocolParser;
-use crate::protocol::rawd::RawdData;
-use super::config::SerialConfig;
 
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize)]
 pub enum SerialStatus {
@@ -82,10 +82,8 @@ impl SerialManager {
 
                         tokio::time::sleep(reconnect_delay).await;
 
-                        reconnect_delay = std::cmp::min(
-                            reconnect_delay * 2,
-                            Duration::from_secs(30),
-                        );
+                        reconnect_delay =
+                            std::cmp::min(reconnect_delay * 2, Duration::from_secs(30));
                     }
                 }
             }
@@ -214,9 +212,7 @@ mod tests {
 
         let result = tokio::runtime::Runtime::new()
             .unwrap()
-            .block_on(async {
-                manager.start(|_| {})
-            });
+            .block_on(async { manager.start(|_| {}) });
 
         assert!(result.is_ok());
 

@@ -3,13 +3,11 @@ mod protocol;
 mod serial;
 
 use commands::AppState;
-use tauri::{Emitter, Manager};
 use std::sync::Mutex;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init());
+    let builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
 
     #[cfg(debug_assertions)]
     let builder = builder.plugin(tauri_plugin_mcp_bridge::init());

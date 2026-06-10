@@ -26,45 +26,35 @@ impl ProtocolParser {
         match &self.state {
             ParserState::Idle => {
                 if line.contains("#RAWD") {
-                    eprintln!("[PARSER] Found #RAWD header");
                     self.state = ParserState::InRawdHeader;
                 }
                 None
             }
             ParserState::InRawdHeader => {
-                // Try to parse this line as array1
                 match parse_hex_line(line) {
                     Ok(array1) => {
-                        eprintln!("[PARSER] Parsed array1 (first 5: {:?})", &array1[0..5]);
                         self.state = ParserState::InRawdArray1(array1);
                     }
-                    Err(e) => {
-                        eprintln!("[PARSER] Header line not hex data ({}), waiting for array1", e);
-                        // This isn't hex data, so it must be the metadata line (e.g., " 10 3684")
-                        // Stay in InRawdHeader state - the NEXT line should be array1
+                    Err(_) => {
+                        // Metadata line (e.g. " 10 3684"), wait for actual hex data
                     }
                 }
                 None
             }
-            ParserState::InRawdArray1(array1) => {
-                // We have array1, now parse array2 and emit
-                match parse_hex_line(line) {
-                    Ok(array2) => {
-                        eprintln!("[PARSER] Parsed array2 (first 5: {:?})", &array2[0..5]);
-                        let result = RawdData {
-                            array1: *array1,
-                            array2,
-                        };
-                        self.state = ParserState::Idle;
-                        Some(result)
-                    }
-                    Err(e) => {
-                        eprintln!("[PARSER] Expected array2 but got error: {}. Resetting.", e);
-                        self.state = ParserState::Idle;
-                        None
-                    }
+            ParserState::InRawdArray1(array1) => match parse_hex_line(line) {
+                Ok(array2) => {
+                    let result = RawdData {
+                        array1: *array1,
+                        array2,
+                    };
+                    self.state = ParserState::Idle;
+                    Some(result)
                 }
-            }
+                Err(_) => {
+                    self.state = ParserState::Idle;
+                    None
+                }
+            },
         }
     }
 }
@@ -83,18 +73,13 @@ mod tests {
     fn test_parse_complete_rawd_block() {
         let mut parser = ProtocolParser::new();
 
-        // Feed header
         assert!(parser.feed_line("'#RAWD").is_none());
-
-        // Feed metadata line
         assert!(parser.feed_line(" 10 3684").is_none());
 
-        // Feed first array
         let binding1 = "0001 ".repeat(256);
         let array1_line = binding1.trim();
         assert!(parser.feed_line(array1_line).is_none());
 
-        // Feed second array - should get result
         let binding2 = "0002 ".repeat(256);
         let array2_line = binding2.trim();
         let result = parser.feed_line(array2_line);
@@ -111,32 +96,25 @@ mod tests {
     fn test_parser_resets_after_partial_block() {
         let mut parser = ProtocolParser::new();
 
-        // Feed header
         assert!(parser.feed_line("'#RAWD").is_none());
-
-        // Feed metadata line
         assert!(parser.feed_line(" 10 3684").is_none());
-
-        // Feed invalid first array
         assert!(parser.feed_line("INVALID DATA HERE").is_none());
-
-        // Parser should now be reset to Idle
         assert!(parser.feed_line("'#RAWD").is_none());
     }
 
+    const SAMPLE_PROTOCOL_DATA: &str = include_str!("../../tests/data-example.txt");
+
     #[test]
     fn test_parse_real_data_example() {
-        let data = include_str!("../../../data-example.txt");
         let mut parser = ProtocolParser::new();
         let mut rawd_count = 0;
 
-        for line in data.lines() {
-            if let Some(_) = parser.feed_line(line) {
+        for line in SAMPLE_PROTOCOL_DATA.lines() {
+            if parser.feed_line(line).is_some() {
                 rawd_count += 1;
             }
         }
 
-        // The data-example.txt contains 4 RAWD blocks
         assert_eq!(rawd_count, 4, "Expected 4 RAWD blocks, got {}", rawd_count);
     }
 }

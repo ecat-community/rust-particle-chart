@@ -1,95 +1,93 @@
 # Particle Chart
 
-Tauri + Leptos 粒子计数器 256 通道数据可视化应用。从串口读取粒子计数器数据，解析 `#RAWD` 协议字段（两组 256 通道 hex 数据），用 ECharts 柱状图上下分屏实时展示。
+Tauri + Leptos 粒子计数器 256 通道数据可视化桌面应用。
 
-## 协议交互
+从串口读取粒子计数器数据，解析 `#RAWD` 协议字段（两组 256 通道 hex 数据），用 ECharts 柱状图上下分屏实时展示。
 
-- protocol.md 协议格式，主要是 `#RAWD` 字段为数据字段
-- data-example.txt 真实数据例子
+## 功能
 
-客户端需先发送命令触发设备：
+- 双通道 256 通道柱状图实时展示，Y 轴自动缩放
+- 串口参数可配置（端口、波特率、数据位、停止位、校验位）
+- 故障自恢复：断开后指数退避重连（1s → 2s → ... → 30s）
+- 可收起侧边栏，图表自动适配容器尺寸
+- 窗口最小尺寸 800×500，内容等比例 flex 布局
+- Tab 切换（Dashboard / Settings）
 
-1. 发送 `27\r\n` 启动测量，设备每 10 秒自动广播一组完整协议数据
-2. 发送 `\x1B\r\n` (ESC) 停止广播
+## 协议
 
-## 功能需求
+客户端发送命令控制设备：
 
-### 数据展示
+1. `27\r\n` — 启动测量，设备每 ~10 秒广播一组数据
+2. `\x1B\r\n` (ESC) — 停止广播
 
-- 解析 `#RAWD` 字段，提取两组 256 通道 hex 数据
-- 上下分屏显示两个柱状图，分别对应两组通道数据
-- 只显示最新一帧数据，每次收到新数据替换上一帧
-- Y 轴自动缩放，两个图表共享统一最大值
-- X 轴显示 0-255 通道编号，每 32 个显示一个标签
-- 支持鼠标 hover 显示数值（tooltip）、点击交互
-
-### 串口通信
-
-- 数据从串口获取，用户可配置串口参数（端口名、波特率、数据位、停止位、校验位）
-- 使用 tokio-serial 异步 I/O（async read/write），禁止 polling/sleep 轮询
-- 故障自恢复：串口断开或通信失败后，自动按指数退避重试（1s → 2s → 4s → 8s → 16s → 30s max），重连成功后自动重发 `27\r\n` 恢复数据流
-- 恢复过程对上层调用者透明，前端仅通过事件感知连接状态变化（connected / reconnecting / disconnected）
+数据格式为 `#RAWD` 字段，包含两组 256 通道 hex 数据。协议文档和示例数据见 `docs/`。
 
 ## 技术栈
 
-- **后端**: Tauri (Rust) + tokio-serial
-- **前端**: Leptos + charming (Apache ECharts Rust 封装)
-- **图表**: ECharts Canvas 渲染，内置 tooltip / resize / 动画过渡
+- **后端**: Tauri 2 (Rust) + tokio-serial
+- **前端**: Leptos 0.6 (WASM) + charming (ECharts Rust 绑定)
+- **构建**: Trunk (WASM 打包) + cargo-tauri
+- **CI**: GitHub Actions — lint + test + Windows 构建
 
 ## 项目结构
 
 ```
 particle_chart/
-├── src-tauri/
+├── src/                              # Leptos 前端 (WASM)
+│   ├── app.rs                        # 主应用布局
+│   ├── style.css                     # 全局样式
+│   ├── tauri_bridge.rs               # Tauri invoke/event 桥接
+│   └── components/
+│       ├── channel_chart.rs          # ECharts 图表 + ResizeObserver
+│       ├── serial_config.rs          # 串口配置表单
+│       ├── top_nav.rs                # 顶部导航栏
+│       └── settings_view.rs          # 设置页
+├── src-tauri/                        # Tauri 后端 (Rust)
 │   ├── src/
-│   │   ├── main.rs              # Tauri 入口
+│   │   ├── main.rs                   # 入口
+│   │   ├── lib.rs                    # Tauri 插件注册
+│   │   ├── commands.rs               # Tauri commands
 │   │   ├── serial/
-│   │   │   ├── mod.rs
-│   │   │   ├── manager.rs       # SerialManager: async 读写 + 故障自恢复
-│   │   │   └── config.rs        # 串口配置结构体
+│   │   │   ├── manager.rs            # 异步串口读写 + 自动重连
+│   │   │   └── config.rs             # 串口配置
 │   │   ├── protocol/
-│   │   │   ├── mod.rs
-│   │   │   ├── parser.rs        # 协议状态机解析器
-│   │   │   └── rawd.rs          # #RAWD 数据结构与解析
-│   │   └── commands.rs          # Tauri commands
+│   │   │   ├── parser.rs             # 协议状态机
+│   │   │   └── rawd.rs              # #RAWD 解析
+│   │   └── bin/
+│       └── simulated_device.rs       # 模拟设备（用于测试）
+│   ├── serialport-patch/             # serialport crate 本地补丁（PTY 支持）
+│   ├── tauri.conf.json
 │   └── Cargo.toml
-├── src/                          # Leptos 前端
-│   ├── app.rs                   # 主应用
-│   ├── components/
-│   │   ├── serial_config.rs     # 串口配置表单
-│   │   └── channel_chart.rs     # charming + Leptos 图表组件
-│   └── lib.rs
-├── tests/
-│   └── integration/
-│       └── serial_test.rs       # socat 集成测试
-├── .github/workflows/ci.yml    # CI 流水线
-├── clippy.toml
-├── rustfmt.toml
-├── deny.toml
-└── Cargo.toml                   # workspace root
+├── docs/                             # 文档（不提交 git）
+├── .github/workflows/ci.yml          # CI
+├── Trunk.toml
+└── Cargo.toml
 ```
 
-## 质量门禁
+## 开发
 
-- `cargo fmt --check` — 格式检查
-- `cargo clippy -- -D warnings` — lint 严格模式
-- `cargo test` — 单元测试
-- `cargo test --test integration` — 集成测试
-- `cargo deny check` — 依赖安全/许可证检查
+```bash
+# 前端构建
+trunk build
 
-### 单元测试
+# 开发模式（需要 cargo tauri dev）
+cd src-tauri && cargo tauri dev
 
-| 模块 | 测试内容 |
-|------|---------|
-| `protocol/parser` | 状态机解析各种协议字段，用 `data-example.txt` 作 fixture |
-| `protocol/rawd` | #RAWD 两组 256 hex 解析，边界输入 |
-| `serial/config` | 串口配置参数验证 |
-| `commands` | Tauri command 参数校验，Mock SerialManager |
+# 模拟设备测试（需要 socat）
+socat -d -d pty,raw,echo=0,link=/tmp/ttyV0 pty,raw,echo=0,link=/tmp/ttyV1
+cargo run --bin simulated-device /tmp/ttyV0
+```
 
-### 集成测试
+## CI / 构建
 
-使用 socat 创建虚拟串口对，用 Rust + tokio-serial 模拟设备端：
+| 触发条件 | 动作 |
+|----------|------|
+| push/PR to main | lint + clippy + test |
+| push/PR to main | 构建 Windows AMD64 产物 |
+| tag `v*` | 构建 + 创建 GitHub Release（.exe / .msi） |
 
-1. socat 创建 PTY 对（如 /dev/ttys001 ↔ /dev/ttys002）
-2. 模拟设备端：打开 PTY slave，等待接收 `27\r\n` 后循环发送 `data-example.txt` 内容
-3. 验证：正确发送启动命令、正确解析 #RAWD 数据、串口断开后自动重连、正确发送停止命令
+Windows 构建使用 `windows-latest` runner，产物为 NSIS 安装包和 MSI。
+
+### serialport 补丁
+
+`serialport` crate 在 macOS PTY 上 `IOSSIOSPEED` ioctl 返回 `ENOTTY`，导致 `tokio-serial` 无法用于 socat 虚拟串口测试。`src-tauri/serialport-patch/` 对此做了补丁：忽略 ENOTTY 错误。通过 `[patch.crates-io]` 引用，不影响 Windows 构建。

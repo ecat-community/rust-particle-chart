@@ -2,7 +2,7 @@ use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio_serial::SerialStream;
 
-const DATA: &[u8] = include_bytes!("../../../data-example.txt");
+const DATA: &[u8] = include_bytes!("../../tests/data-example.txt");
 
 /// Simulated particle counter device.
 ///
@@ -62,12 +62,7 @@ async fn main() {
         let mut sending = true;
         while sending {
             // Write one dataset with timeout
-            match tokio::time::timeout(
-                Duration::from_secs(5),
-                write_half.write_all(DATA),
-            )
-            .await
-            {
+            match tokio::time::timeout(Duration::from_secs(5), write_half.write_all(DATA)).await {
                 Ok(Ok(())) => {
                     let _ = write_half.flush().await;
                     total_datasets += 1;
@@ -75,12 +70,10 @@ async fn main() {
                 }
                 Ok(Err(e)) => {
                     eprintln!("[DEV] Write err: {} — pausing.", e);
-                    sending = false;
                     break;
                 }
                 Err(_) => {
                     eprintln!("[DEV] Write timeout — pausing.");
-                    sending = false;
                     break;
                 }
             }
